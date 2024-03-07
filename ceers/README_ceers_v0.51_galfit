@@ -1,0 +1,80 @@
+# Created 2/24/2023
+# Elizabeth J. McGrath (Colby College)
+# emcgrath@colby.edu
+
+This README is for the galfit catalog corresponding to v0.51 images and photometry. 
+Currently the catalog contains independent measurements in both F200W and F356W.
+	
+The following columns are included in each catalog:
+
+'ID' - CEERS ID in v0.51 of Steve F.'s photometry catalog
+'FIELD' - CEERS field number
+'CATID' - CATID from Steve F.'s v0.51 photometry catalog
+'RA' - Right Ascension (degrees)
+'Dec' - Declination (degrees)
+
+The remaining columns are filter-dependent.  An example for F200W is listed below.
+The other filters follow a similar naming scheme:
+
+'F200W_MAG' - Galfit magnitude in F200W
+'F200W_MAG_ERR' - Error on the galfit mag in F200W
+'F200W_RE' - Effective radius (arcsec) in F200W
+'F200W_RE_ERR' - Error on the effective radius (arcsec) in F200W
+'F200W_N' - Sersic index in F200W
+'F200W_N_ERR' - Error on Sersic index in F200W
+'F200W_Q' - Axis ratio (b/a) in F200W
+'F200W_Q_ERR' - Error on the axis ratio (b/a) in F200W
+'F200W_PA' - Position angle in F200W (degrees E of N)
+'F200W_PA_ERR' - Error on the position angle in F200W
+'F200W_FLAG' - Quality flag (see below)
+
+########################################################################################
+
+Quality flags:
+I have included some initial flagging of poor or suspect fits, as follows:
+
+	Flag = 0 (good fit)
+	Flag = 1 (suspect fit, galfit magnitude differs substantially from the median offset 
+			  between the SExtractor catalog and galfit derived magnitudes)
+	Flag = 2 (poor fit, one or more parameters reached a constraint limit)
+	Flag = 3 (Galfit "bombs". Failed to find a solution.)
+	Flag = 4 (Source not fit because it was located too close to the edge of the 
+	          detector.)
+			  
+While these flags should help determine which fits are trustworthy, they are still 
+preliminary. It's safest to use flag=0 sources. Flag=1 sources may be OK, but should 
+probably be inspected on a case-by-case basis. Galfit's best fit models and residual 
+images can be made available upon request.
+
+Also keep in mind that galfit errors tend to be underestimated, so take the errors with 
+a grain of salt.
+
+########################################################################################
+
+Details of the fitting:
+
+Galfit was run on the background-subtracted v0.51 mosaics (e.g. _mbkgsub1.fits) in the 
+following way:
+
+	- Sources with F356W_mag < 28.5 were fit. 
+	- Photometry and segmaps from Steve Finkelstein's v0.51 catalogs were used for 
+making first guesses on source location, magnitude, size, position angle, and axis ratio, 
+and set the IDs listed in the catalog.
+	- The Kron radius was used to determine an appropriate image thumbnail region for
+galfit to fit.
+	- All galaxies within 3 magnitudes of the primary source, but no fainter than m=27, 
+that fell within the thumbnail region were fit simultaneously.
+	- Galaxies not fit simultaneously were masked during the fitting process using the 
+segmentation map.
+	- The background was held fixed at zero.	
+	- Thumbnails of the v0.51 ERR array were used as sigma images for each source. 
+(These ERR arrays are the square-root of the variance arrays summed in quadrature. The 
+VAR_RDNOISE array was rescaled to account for the measured sky variance in the _cal.fits 
+files prior to drizzling. See v0.51 imaging README for more details. No further scaling 
+was applied.) 
+	- Empirical PSFs from Steve Finkelstein were used as input PSFs for galfit, with no 
+subsampling of the PSF.
+	- Constraints were applied to keep all parameters within reasonable bounds.
+
+If you have any questions, please ask me!  If you use this data for a publication, please 
+check with me that you have the latest version.
