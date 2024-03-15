@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import h5py
 import glob
+import os
 
 import astropy.units as u
 from astropy.io import fits
@@ -15,10 +16,10 @@ import multiprocessing as mp
 # --------------------------------------------
 # setups
 # --------------------------------------------
-folder_PSF = 'SH0ES_N5584_reprojected_iter2/'
+folder_PSF = 'PSF/'
 folder_galaxy = 'cutouts_ceers/'
 folder_foreground = 'cutouts_raw/'
-filters = ['F814W','F150W','F160W','F277W']
+filters = ['F555W','F814W','F150W','F160W','F277W']
 galaxy_catalog = pd.read_csv('cutouts_ceers/catalog.csv')
 
 # logger
@@ -30,7 +31,11 @@ def run_test(galaxy_catalog,
              folder_PSF,folder_galaxy,folder_foreground,
              filters,
              galaxy_idx=None,foreground_ID=None,
-             logger=None,plot=False):
+             logger=None,plot=False,test_ID_prefix='',
+             random_seed=None):
+    if random_seed is not None:
+        np.random.seed(random_seed)
+        
     if logger is None:
         logger = logging.getLogger('sphot2')
         logger.setLevel(logging.INFO)
@@ -49,19 +54,20 @@ def run_test(galaxy_catalog,
     CEERS_field = galaxy_catalog.loc[catalog_idx, 'FIELD']
     
     # pick foreground
+    galaxy_only = False
     if foreground_ID is None:
         logger.info('foreground_ID is not specied: no foreground will be used. Use \'randomize\' to randomly select a foreground.')
         galaxy_only = True
         foreground_ID = 'GalaxyOnly'
     elif foreground_ID == 'randomize':
         logger.info('Picking a random foreground')
-        foreground_ID = int(np.random.uniform(0,500))
+        foreground_ID = str(int(np.random.uniform(0,500))).zfill(3)
     else:
         logger.info('Using a specified foreground ID')
         pass
     # foreground_ID = 'GalaxyOnly' if galaxy_only else int(np.random.uniform(0,500))
 
-    test_ID = f'{galaxy_ID}_{foreground_ID}'
+    test_ID = test_ID_prefix + f'{galaxy_ID}_{foreground_ID}'
     logger.info(f'test_ID: {test_ID}')
     
     # --------------------------------------------
@@ -125,7 +131,7 @@ def run_test(galaxy_catalog,
     # pick fitting precision
     fitting_kwargs = dict(mag_tol = 0.001, 
                           rtol_init = 1e-3, 
-                          rtol_iter=1e-3)
+                          rtol_iter = 1e-3)
 
     # fit reference image
     galaxy.F150W.do_photometry(plot=plot,**fitting_kwargs)
@@ -136,26 +142,36 @@ def run_test(galaxy_catalog,
     fixed_params_dict = dict(zip(fixed_params_names,fixed_params_values))
 
     # fit all images
+    galaxy.F555W.do_photometry(plot=plot,fixed_params = fixed_params_dict, **fitting_kwargs)
     galaxy.F814W.do_photometry(plot=plot,fixed_params = fixed_params_dict, **fitting_kwargs)
     galaxy.F160W.do_photometry(plot=plot,fixed_params = fixed_params_dict, **fitting_kwargs)
     galaxy.F277W.do_photometry(plot=plot,fixed_params = fixed_params_dict, **fitting_kwargs)
 
     # --------------------------------------------
+    dAB_F555W = galaxy.F555W.mag - galaxy.catalog_data['AB606']
     dAB_F814W = galaxy.F814W.mag - galaxy.catalog_data['AB814']
     dAB_F150W = galaxy.F150W.mag - galaxy.catalog_data['AB150']
     dAB_F160W = galaxy.F160W.mag - galaxy.catalog_data['AB160']
     dAB_F277W = galaxy.F277W.mag - galaxy.catalog_data['AB277']
-    logging.info(f'F814W AB={galaxy.F814W.mag}, ΔAB={dAB_F814W}')
-    logging.info(f'F814W AB={galaxy.F150W.mag}, ΔAB={dAB_F150W}')
-    logging.info(f'F814W AB={galaxy.F160W.mag}, ΔAB={dAB_F160W}')
-    logging.info(f'F814W AB={galaxy.F277W.mag}, ΔAB={dAB_F277W}')
+    logger.info(f'F555W AB={galaxy.F555W.mag}, ΔAB={dAB_F555W}')
+    logger.info(f'F814W AB={galaxy.F814W.mag}, ΔAB={dAB_F814W}')
+    logger.info(f'F150W AB={galaxy.F150W.mag}, ΔAB={dAB_F150W}')
+    logger.info(f'F160W AB={galaxy.F160W.mag}, ΔAB={dAB_F160W}')
+    logger.info(f'F277W AB={galaxy.F277W.mag}, ΔAB={dAB_F277W}')
     
     cols = ['test_ID',
-            'sphot_F814W','sphot_F150W','sphot_F160W','sphot_F277W',
-            'dAB_F814W','dAB_F150W','dAB_F160W','dAB_F277W',
+            *[f'sphot_{filt}' for filt in filters],
+            *[f'dAB_{filt}' for filt in filters],
+            *[f'bkg_mean_{filt}' for filt in filters],
+            *[f'bkg_std_{filt}' for filt in filters],
             *fixed_params_names]
-    vals = [test_ID, galaxy.F814W.mag, galaxy.F150W.mag, galaxy.F160W.mag, galaxy.F277W.mag, 
-            dAB_F814W, dAB_F150W, dAB_F160W, dAB_F277W, *fixed_params_values]
+    
+    vals = [test_ID, 
+            *[galaxy.images[filt].mag for filt in filters], 
+            dAB_F555W, dAB_F814W, dAB_F150W, dAB_F160W, dAB_F277W, 
+            *[galaxy.images[filt].bkg_mean for filt in filters],
+            *[galaxy.images[filt].bkg_std for filt in filters],
+            *fixed_params_values]
     result = pd.Series(dict(zip(cols,vals)))
     return result
     
@@ -169,14 +185,42 @@ def galaxy_only_helper(galaxy_idx):
                             plot = False)
         result.to_csv(f'test_results/galaxy_only/{galaxy_idx}.csv',index=True)
         logger.info(f'Photometry completed: galaxy_idx={galaxy_idx}')
-    except Exception:
+    except Exception as e:
+        logger.error(e, stack_info=True, exc_info=True)
+        pass
+    
+def full_simulation_helper(test_number):
+    try:
+        test_name = f'test{str(test_number).zfill(4)}'
+        result = run_test(galaxy_catalog,folder_PSF,
+                            folder_galaxy,folder_foreground,filters,
+                            logger=logger,
+                            galaxy_idx = 'randomize',
+                            foreground_ID = 'randomize',
+                            plot = False,
+                            test_ID_prefix = test_name+'_',
+                            random_seed = test_number)
+        result.to_csv(f'test_results/full_sim_ver2/{test_name}.csv',index=True)
+        logger.info(f'Photometry completed: {test_name}')
+    except Exception as e:
+        logger.error(e, stack_info=True, exc_info=True)
+        logger.warning(f'Exiting {test_name} due to the error above')
+        # print(e)
         pass
         
 if __name__ == '__main__':
+    NCPUs = int(os.environ['SLURM_CPUS_PER_TASK']) #mp.cpu_count()
+    logger.info(f'Using {NCPUs} CPUs')
+    pool = mp.Pool(NCPUs)
     
-    pool = mp.Pool(mp.cpu_count())
-    indices = galaxy_catalog.index.values
-    _ = pool.imap(galaxy_only_helper, indices)
+    # ------- full simulation --------
+    test_IDs = np.arange(5000,6000,1)
+    _ = pool.imap(full_simulation_helper, test_IDs)
+
+    # ------- galaxy-only test ---------
+    # indices = galaxy_catalog.index.values
+    # _ = pool.imap(galaxy_only_helper, indices)
+    
     pool.close()
     pool.join()
-    # print(list(results))
+    # print(list(results))s

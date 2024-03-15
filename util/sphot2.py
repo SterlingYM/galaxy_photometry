@@ -225,7 +225,10 @@ class CutoutData():
     def get_fitter_bounds(self,img):
         '''generate the initial guess based on the input image. Note these bounds are in the standarized scale'''
         # ['amplitude' 'r_eff' 'n' 'x_0' 'y_0' 'ellip' 'theta' 'psf_pa' 'background']      
-        lower_bounds = [np.log10(np.nanmin(img[img>0])),0,1e-2,0,0,0,0,0]
+        if (img>0).sum() > 0:
+            lower_bounds = [np.log10(np.nanmin(img[img>0])),0,1e-2,0,0,0,0,0]
+        else:
+            lower_bounds = [np.log10(1e-10),0,1e-2,0,0,0,0,0]
         upper_bounds = [np.log10(np.nanmax(img)),2,1,1,1,1,np.pi,90]
         bounds = np.vstack([lower_bounds,upper_bounds]).T
         return bounds
