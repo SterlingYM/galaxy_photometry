@@ -12,6 +12,7 @@ from util.sphot2 import CutoutData, MultiBandCutout, astroplot, calc_mag
 import logging
 import multiprocessing as mp
 
+#### TODO: code below is just a copy from test_SersicFit as a skeleton
 
 # --------------------------------------------
 # setups
@@ -177,53 +178,3 @@ def run_test(galaxy_catalog,
             *fixed_params_values]
     result = pd.Series(dict(zip(cols,vals)))
     return result
-    
-def galaxy_only_helper(galaxy_idx):
-    try:
-        result = run_test(galaxy_catalog,folder_PSF,
-                            folder_galaxy,folder_foreground,filters,
-                            logger=logger,
-                            galaxy_idx = galaxy_idx,
-                            foreground_ID = None,
-                            plot = False)
-        result.to_csv(f'test_results/galaxy_only/{galaxy_idx}.csv',index=True)
-        logger.info(f'Photometry completed: galaxy_idx={galaxy_idx}')
-    except Exception as e:
-        logger.error(e, stack_info=True, exc_info=True)
-        pass
-    
-def full_simulation_helper(test_number):
-    try:
-        test_name = f'test{str(test_number).zfill(4)}'
-        result = run_test(galaxy_catalog,folder_PSF,
-                            folder_galaxy,folder_foreground,filters,
-                            logger=logger,
-                            galaxy_idx = 'randomize',
-                            foreground_ID = 'randomize',
-                            plot = False,
-                            test_ID_prefix = test_name+'_',
-                            random_seed = test_number)
-        result.to_csv(f'test_results/full_sim_ver2/{test_name}.csv',index=True)
-        logger.info(f'Photometry completed: {test_name}')
-    except Exception as e:
-        logger.error(e, stack_info=True, exc_info=True)
-        logger.warning(f'Exiting {test_name} due to the error above')
-        # print(e)
-        pass
-        
-if __name__ == '__main__':
-    NCPUs = int(os.environ['SLURM_CPUS_PER_TASK']) #mp.cpu_count()
-    logger.info(f'Using {NCPUs} CPUs')
-    pool = mp.Pool(NCPUs)
-    
-    # ------- full simulation --------
-    test_IDs = np.arange(5000,6000,1)
-    _ = pool.imap(full_simulation_helper, test_IDs)
-
-    # ------- galaxy-only test ---------
-    # indices = galaxy_catalog.index.values
-    # _ = pool.imap(galaxy_only_helper, indices)
-    
-    pool.close()
-    pool.join()
-    # print(list(results))s
