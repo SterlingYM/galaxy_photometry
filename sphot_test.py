@@ -2,8 +2,8 @@ folder_PSF = 'PSF/'
 datafile =  'cutouts_DDU/g211.h5'
 filters = ['F555W','F814W','F090W','F150W','F160W','F277W']
 base_filter = 'F150W'
-N_mainloop_iter = 3
-fit_complex_model = False
+N_mainloop_iter = 5
+fit_complex_model = True
 blur_psf = 4
 
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     fitter_2.fit(fit_to='psf_sub_data',
                 method='iterative_NM',max_iter=30)
     for _ in range(N_mainloop_iter):
-        fitter_2.fit(fit_to='psf_sub_data',method='iterative_NM',max_iter=10)
+        fitter_2.fit(fit_to='psf_sub_data',method='iterative_NM',max_iter=15)
         fitter_psf.fit(fit_to='sersic_residual',plot=False)
         
     # 7. plot the results
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         _fitter_2.model.x0 = _cutoutdata.sersic_params
         _fitter_2.fit(fit_to='psf_sub_data',max_iter=20)
         for _ in range(N_mainloop_iter):
-            _fitter_2.fit(fit_to='psf_sub_data')
+            _fitter_2.fit(fit_to='psf_sub_data',max_iter=10)
             _fitter_psf.fit(fit_to='sersic_residual',plot=False)
         plot_sphot_results(_cutoutdata)
         
