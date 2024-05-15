@@ -1,8 +1,8 @@
 folder_PSF = 'PSF/'
-datafile =  'cutouts_DDU/g211.h5'
+data_folder = 'cutouts_DDU/'
 filters = ['F555W','F814W','F090W','F150W','F160W','F277W']
 base_filter = 'F150W'
-N_mainloop_iter = 5
+N_mainloop_iter = 7
 fit_complex_model = True
 blur_psf = 4
 
@@ -12,14 +12,14 @@ from sphot.psf import PSFFitter
 from sphot.fitting import ModelFitter, ModelScaleFitter
 from sphot.plotting import plot_sphot_results
 
+import multiprocessing as mp
+import glob
 from warnings import filterwarnings
 
-if __name__ == '__main__':
-    filterwarnings('ignore')
-
+def run_fit(datafile):
     ######## base fit ########
     # 1. load data & perform initial analysis
-    print('Preparing data...')
+    print('Preparing data...', datafile)
     galaxy = load_and_crop(datafile,filters,folder_PSF,
                         base_filter,plot=False)
 
@@ -51,7 +51,6 @@ if __name__ == '__main__':
         fitter_psf.fit(fit_to='sersic_residual',plot=False)
         
     # 7. plot the results
-    plot_sphot_results(cutoutdata)
     galaxy.save(f'{galaxy.name}_sphot.h5')
 
     ######## fit each filter ########
@@ -82,7 +81,15 @@ if __name__ == '__main__':
         for _ in range(N_mainloop_iter):
             _fitter_2.fit(fit_to='psf_sub_data',max_iter=10)
             _fitter_psf.fit(fit_to='sersic_residual',plot=False)
-        plot_sphot_results(_cutoutdata)
         
     # update the galaxy save data
     galaxy.save(f'{galaxy.name}_sphot.h5')
+    
+    
+if __name__ == '__main__':
+    filterwarnings('ignore')
+    datafiles = glob.glob(data_folder+'g*.h5')
+    print('Working on the following files:',datafiles)
+    
+    with mp.Pool(mp.cpu_count()) as pool:
+        _ = list(pool.imap_unordered(run_fit,datafiles))
