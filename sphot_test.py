@@ -85,11 +85,16 @@ def run_fit(datafile):
     # update the galaxy save data
     galaxy.save(f'{galaxy.name}_sphot.h5')
     
-    
+def run_fit_helper(datafile):
+    try:
+        run_fit(datafile)
+    except Exception as e:
+        print(f'Error in {datafile}: {e}')
+        
 if __name__ == '__main__':
     filterwarnings('ignore')
     datafiles = glob.glob(data_folder+'g*.h5')
     print('Working on the following files:',datafiles)
     
     with mp.Pool(mp.cpu_count()) as pool:
-        _ = list(pool.imap_unordered(run_fit,datafiles))
+        _ = list(pool.imap_unordered(run_fit_helper,datafiles))
