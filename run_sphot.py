@@ -87,7 +87,8 @@ def run_helper(**kwargs):
     try:
         run_sphot(**kwargs)
     except Exception as e:
-        print(f'Error in {kwargs['datafile']}: {e}')
+        datafile = kwargs['datafile']
+        print(f'Error in {datafile}: {e}')
         
 if __name__ == '__main__':
     filters = ['F555W','F814W','F090W','F150W','F160W','F277W']
