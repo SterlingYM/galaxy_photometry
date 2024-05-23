@@ -50,7 +50,7 @@ def run_sphot(datafile,filters,folder_PSF,out_folder,
     ######## fit each filter ########
     base_params = cutoutdata.sersic_params
     for filtername in galaxy.filters:
-        print(f'\n*** working on {filt} ***')
+        print(f'\n*** working on {filtername} ***')
         _cutoutdata = galaxy.images[filtername]
         
         # basic statistics
@@ -83,18 +83,19 @@ def run_sphot(datafile,filters,folder_PSF,out_folder,
         # update saved data
         galaxy.save(out_folder+f'{galaxy.name}_sphot.h5')
     
-def run_fit_helper(**kwargs):
+def run_helper(**kwargs):
     try:
-        run_fit(**kwargs)
+        run_sphot(**kwargs)
     except Exception as e:
-        print(f'Error in {datafile}: {e}')
+        print(f'Error in {kwargs['datafile']}: {e}')
         
 if __name__ == '__main__':
-    run_fit_helper(
+    filters = ['F555W','F814W','F090W','F150W','F160W','F277W']
+    run_helper(
         datafile = sys.argv[1],
-        filters = ['F555W','F814W','F090W','F150W','F160W','F277W'],
+        filters = filters,
         folder_PSF = 'PSF/',
-        out_folder = 'sphot_out/',
+        out_folder = 'sphot_out_May23/',
         base_filter = 'F150W',
         blur_psf = dict(zip(filters,[5,5,3.8,3.8,9,9])),
         N_mainloop_iter = 7,
