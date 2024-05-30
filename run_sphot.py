@@ -6,7 +6,7 @@ import sys
 import os 
 
 if __name__ == '__main__':
-    
+  
     # default options
     scalefit_only = False
     out_folder = './'
@@ -21,7 +21,15 @@ if __name__ == '__main__':
                 out_folder = arg.split('=')[1]
                 print('output folder specified:',out_folder)
             else:
-                print('unknown options:',arg)        
+                print('unknown options:',arg)     
+                
+    # # switch logging option based on how this file is running
+    # if "SLURM_JOB_ID" in os.environ:
+    #     print("Running in Slurm")
+    #     def wrapper(func):
+    #         with open('progress.log', 'w') as log_file:
+    #         # Create a Console instance that writes to the log file
+    #         console = Console(file=log_file, force_terminal=True)   
 
     filters =  ['F555W','F814W','F090W','F150W','F160W','F277W']
     folder_PSF = 'PSF/'   # a folder that contains filtername.npy (which stores PSF 2D array)
