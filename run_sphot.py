@@ -17,6 +17,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 3:
         for arg in sys.argv[3:]:
             if arg.startswith('--scalefit_only'):
+                print('scalefit only option detected')
                 scalefit_only = True
 
     filters =  ['F555W','F814W','F090W','F150W','F160W','F277W']
