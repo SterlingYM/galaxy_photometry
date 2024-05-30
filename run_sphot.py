@@ -75,7 +75,8 @@ if __name__ == '__main__':
                         N_mainloop_iter=7,
                         blur_psf=blur_psf[filt])
             galaxy.save(out_path)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'Filter {filt} failed:\n',e)
+            continue
 
     print('Completed Sphot')
