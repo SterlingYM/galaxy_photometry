@@ -50,6 +50,7 @@ if __name__ == '__main__':
     else:
         print('* Loading an existing sphot filt:',datafile)
         galaxy = read_sphot_h5(datafile)
+        out_path=datafile
     
     # 3. Scale Sersic model
     print('* Starting Scale fit')
