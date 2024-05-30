@@ -6,21 +6,22 @@ import sys
 import os 
 
 if __name__ == '__main__':
-    scalefit_only = False
     
+    # default options
+    scalefit_only = False
+    out_folder = './'
+
     datafile = sys.argv[1]
     if len(sys.argv) > 2:
-        out_folder = sys.argv[2]
-    else:
-        out_folder = './'
-        
-    if len(sys.argv) > 3:
-        for arg in sys.argv[3:]:
+        for arg in sys.argv[2:]:
             if arg == '--scalefit_only':
                 print('scalefit only option detected')
                 scalefit_only = True
+            elif arg == '--out_folder':
+                out_folder = arg.split('=')[1]
+                print('output folder specified:',out_folder)
             else:
-                print('unknown options:',arg)
+                print('unknown options:',arg)        
 
     filters =  ['F555W','F814W','F090W','F150W','F160W','F277W']
     folder_PSF = 'PSF/'   # a folder that contains filtername.npy (which stores PSF 2D array)
