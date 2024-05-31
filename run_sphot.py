@@ -34,13 +34,13 @@ if __name__ == '__main__':
     filters =  ['F555W','F814W','F090W','F150W','F160W','F277W']
     folder_PSF = 'PSF/'   # a folder that contains filtername.npy (which stores PSF 2D array)
     base_filter = 'F150W' # the name of filter to which the Sersic model is fitted
-    blur_psf = dict(zip(filters,[5,5,3.8,3.8,9,9])) # the sigma of PSF blurring in pixels
+    blur_psf = dict(zip(filters,[4,5,3.8,3.8,9,9])) # the sigma of PSF blurring in pixels
     iter_basefit = 7  # Number of iterative Sersic-PSF fitting for the base_filter fit
     iter_scalefit = 5 # Number of iterative Sersic-PSF fitting for scale-fit
     fit_complex_model = True # two-Sersic if True, single-Sersic if False
     allow_refit = False # Sersic profile is re-fitted for each filter if True
     custom_initial_crop = 1 # a float between 0 and 1: make this number smaller to manually crop data before analysis
-    sigma_guess = 10 # initial guess of galaxy size in pixels
+    sigma_guess = 10 # initial guess of galaxy size in pixels (~HWHM of the galaxy profile)
 
     # 1. load data
     if not scalefit_only:
