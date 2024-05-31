@@ -30,18 +30,19 @@ if __name__ == '__main__':
         print(f"Running in Slurm (jobid={slurm_jobid})")
         print(f'Saving the progress in the log file: {logfile}')
         from rich.console import Console
-        def wrapper(func,*args,**kwargs):
-            # with open(logfile, 'w') as log_file:
-            #     # Create a Console instance that writes to the log file
-            # console = Console(file=log_file, force_terminal=True)   
-            console = Console(file=sys.stderr)#, force_terminal=True)  
-            kwargs.update(dict(console=console))
-            return func(*args,**kwargs)
+        def console_wrapper(func,*args,**kwargs):
+            logfile = f'logs/{slurm_jobid}_rich.log'
+            with open(logfile, 'w') as log_file:
+                # Create a Console instance that writes to the log file
+                console = Console(file=log_file, force_terminal=True)   
+                # console = Console(file=sys.stderr)#, force_terminal=True)  
+                kwargs.update(dict(console=console))
+                return func(*args,**kwargs)
     else:
-        def wrapper(func,*args,**kwargs):
+        def console_wrapper(func,*args,**kwargs):
             return func(*args,**kwargs)
             
-    def run_sphot():
+    def run_sphot(**kwargs):
         ''' main commands are put in this dummy function so that the rich output can be forwarded to a log file when running in slurm'''
         filters =  ['F555W','F814W','F090W','F150W','F160W','F277W']
         folder_PSF = 'PSF/'   # a folder that contains filtername.npy (which stores PSF 2D array)
@@ -69,7 +70,8 @@ if __name__ == '__main__':
                         base_filter = base_filter,
                         fit_complex_model = fit_complex_model,
                         blur_psf = blur_psf[base_filter],
-                        N_mainloop_iter = iter_scalefit)
+                        N_mainloop_iter = iter_scalefit,
+                        **kwargs)
             galaxy.save(out_path)
         else:
             print('* Loading an existing sphot filt:',datafile)
@@ -85,11 +87,12 @@ if __name__ == '__main__':
                             allow_refit=allow_refit,
                             fit_complex_model=fit_complex_model,
                             N_mainloop_iter=7,
-                            blur_psf=blur_psf[filt])
+                            blur_psf=blur_psf[filt],
+                            **kwargs)
                 galaxy.save(out_path)
             except Exception as e:
                 print(f'Filter {filt} failed:\n',e)
                 continue
         print('Completed Sphot')
         
-    wrapper(run_sphot())
+    console_wrapper(run_sphot)
