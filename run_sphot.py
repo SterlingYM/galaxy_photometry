@@ -26,7 +26,7 @@ if __name__ == '__main__':
     # switch logging option based on how this file is running
     if "SLURM_JOB_ID" in os.environ:
         slurm_jobid = os.environ["SLURM_JOB_ID"]
-        logfile = f'logs/{slurmb_jobid}_rich.log'
+        logfile = f'logs/{slurm_jobid}_rich.log'
         print(f"Running in Slurm (jobid={slurm_jobid})")
         print(f'Saving the progress in the log file: {logfile}')
         def wrapper(func,*args,**kwargs):
