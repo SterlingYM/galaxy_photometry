@@ -26,10 +26,10 @@ if __name__ == '__main__':
     # switch logging option based on how this file is running
     if "SLURM_JOB_ID" in os.environ:
         slurm_jobid = os.environ["SLURM_JOB_ID"]
+        logfile = 'logs/{slurmb_jobid}_rich.log'
         print(f"Running in Slurm (jobid={slurm_jobid})")
+        print(f'Saving the progress in the log file: {logfile}')
         def wrapper(func,*args,**kwargs):
-            logfile = 'logs/{slurmb_jobid}_rich.log'
-            print('Saving the progress in the log file: {logfile}')
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
                 console = Console(file=log_file, force_terminal=True)   
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         folder_PSF = 'PSF/'   # a folder that contains filtername.npy (which stores PSF 2D array)
         base_filter = 'F150W' # the name of filter to which the Sersic model is fitted
         blur_psf = dict(zip(filters,[4,5,3.8,3.8,9,9])) # the sigma of PSF blurring in pixels
-        iter_basefit = 7  # Number of iterative Sersic-PSF fitting for the base_filter fit
+        iter_basefit = 10  # Number of iterative Sersic-PSF fitting for the base_filter fit
         iter_scalefit = 5 # Number of iterative Sersic-PSF fitting for scale-fit
         fit_complex_model = True # two-Sersic if True, single-Sersic if False
         allow_refit = False # Sersic profile is re-fitted for each filter if True
