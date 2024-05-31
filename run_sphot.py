@@ -17,7 +17,7 @@ if __name__ == '__main__':
             if arg == '--scalefit_only':
                 print('scalefit only option detected')
                 scalefit_only = True
-            elif arg == '--out_folder':
+            elif arg.startswith('--out_folder'):
                 out_folder = arg.split('=')[1]
                 print('output folder specified:',out_folder)
             else:
