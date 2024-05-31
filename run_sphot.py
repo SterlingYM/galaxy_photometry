@@ -29,12 +29,14 @@ if __name__ == '__main__':
         logfile = f'logs/{slurm_jobid}_rich.log'
         print(f"Running in Slurm (jobid={slurm_jobid})")
         print(f'Saving the progress in the log file: {logfile}')
+        from rich.console import Console
         def wrapper(func,*args,**kwargs):
-            with open(logfile, 'w') as log_file:
-                # Create a Console instance that writes to the log file
-                console = Console(file=log_file, force_terminal=True)   
-                kwargs.update(dict(console=console))
-                return func(*args,**kwargs)
+            # with open(logfile, 'w') as log_file:
+            #     # Create a Console instance that writes to the log file
+            # console = Console(file=log_file, force_terminal=True)   
+            console = Console(file=sys.stderr)#, force_terminal=True)  
+            kwargs.update(dict(console=console))
+            return func(*args,**kwargs)
     else:
         def wrapper(func,*args,**kwargs):
             return func(*args,**kwargs)
