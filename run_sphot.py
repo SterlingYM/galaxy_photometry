@@ -35,7 +35,8 @@ if __name__ == '__main__':
             print(f'Saving the progress in the log file: {logfile}',flush=True)
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
-                console = Console(file=log_file, force_terminal=True)   
+                console = Console(file=log_file, force_terminal=True, force_interactive=True)   
+                console.print('test: this should be written to the log file '+logfile)
                 kwargs.update(dict(console=console))
                 return func(*args,**kwargs)
     else:
