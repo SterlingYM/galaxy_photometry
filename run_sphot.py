@@ -34,7 +34,7 @@ if __name__ == '__main__':
             logger.info(f'Saving the progress in the log file: {logfile}')
             print(f'Saving the progress in the log file: {logfile}',flush=True)
             with open(logfile, 'w') as log_file:
-                log_file.write('test: this should be written to the log file '+logfil+'\n')
+                log_file.write('test: this should be written to the log file '+logfile+'\n')
                 # # Create a Console instance that writes to the log file
                 # console = Console(file=log_file, force_terminal=True, force_interactive=True)   
                 # console.print('test: this should be written to the log file '+logfile)
