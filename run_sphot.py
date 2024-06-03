@@ -30,16 +30,17 @@ if __name__ == '__main__':
         logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
         logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
         logger.info(f'Saving the progress in the log file: {logfile}')
+        
         from rich.console import Console
-        def console_wrapper(func,*args,**kwargs):
+        def console_wrapper(logfile,func,*args,**kwargs):
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
                 console = Console(file=log_file, force_terminal=True)   
-                # console = Console(file=sys.stderr)#, force_terminal=True)  
                 kwargs.update(dict(console=console))
                 return func(*args,**kwargs)
     else:
-        def console_wrapper(func,*args,**kwargs):
+        logfile=None,
+        def console_wrapper(logfile,func,*args,**kwargs):
             return func(*args,**kwargs)
             
     def run_sphot(**kwargs):
@@ -63,7 +64,7 @@ if __name__ == '__main__':
                                 custom_initial_crop = custom_initial_crop,
                                 sigma_guess = sigma_guess)
             out_path = os.path.join(out_folder,f'{galaxy.name}_sphot.h5')
-            logger.info('* Galaxy data loaded: sphot file will be saved as',out_path)
+            logger.info('* Galaxy data loaded: sphot file will be saved as '+out_path)
 
             # 2. fit Sersic model using the base filter
             run_basefit(galaxy,
@@ -95,4 +96,4 @@ if __name__ == '__main__':
                 continue
         logger.info('Completed Sphot')
         
-    console_wrapper(run_sphot)
+    console_wrapper(logfile,run_sphot)
