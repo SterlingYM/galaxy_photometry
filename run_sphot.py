@@ -1,5 +1,5 @@
 from sphot.utils import load_and_crop
-from sphot.core import run_basefit, run_scalefit
+from sphot.core import run_basefit, run_scalefit, logger
 from sphot.data import read_sphot_h5
 
 import sys
@@ -26,9 +26,10 @@ if __name__ == '__main__':
     # switch logging option based on how this file is running
     if "SLURM_JOB_ID" in os.environ:
         slurm_jobid = os.environ["SLURM_JOB_ID"]
-        logfile = f'logs/{slurm_jobid}_rich.log'
-        print(f"Running in Slurm (jobid={slurm_jobid})")
-        print(f'Saving the progress in the log file: {logfile}')
+        slurm_taskid = os.environ["SLURM_ARRAY_TASK_ID"]
+        logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
+        logger.info(f"Running in Slurm (jobid={slurm_jobid})")
+        logger.info(f'Saving the progress in the log file: {logfile}')
         from rich.console import Console
         def console_wrapper(func,*args,**kwargs):
             logfile = f'logs/{slurm_jobid}_rich.log'
@@ -63,7 +64,7 @@ if __name__ == '__main__':
                                 custom_initial_crop = custom_initial_crop,
                                 sigma_guess = sigma_guess)
             out_path = os.path.join(out_folder,f'{galaxy.name}_sphot.h5')
-            print('* Galaxy data loaded: sphot file will be saved as',out_path)
+            logger.info('* Galaxy data loaded: sphot file will be saved as',out_path)
 
             # 2. fit Sersic model using the base filter
             run_basefit(galaxy,
@@ -74,12 +75,12 @@ if __name__ == '__main__':
                         **kwargs)
             galaxy.save(out_path)
         else:
-            print('* Loading an existing sphot filt:',datafile)
+            logger.info('* Loading an existing sphot filt:',datafile)
             galaxy = read_sphot_h5(datafile)
             out_path=datafile
         
         # 3. Scale Sersic model
-        print('* Starting Scale fit')
+        logger.info('* Starting Scale fit')
         base_params = galaxy.images[base_filter].sersic_params
         for filt in filters:
             try:
@@ -91,8 +92,8 @@ if __name__ == '__main__':
                             **kwargs)
                 galaxy.save(out_path)
             except Exception as e:
-                print(f'Filter {filt} failed:\n',e)
+                logger.info(f'Filter {filt} failed:\n',e)
                 continue
-        print('Completed Sphot')
+        logger.info('Completed Sphot')
         
     console_wrapper(run_sphot)
