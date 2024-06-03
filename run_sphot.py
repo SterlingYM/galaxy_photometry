@@ -32,7 +32,7 @@ if __name__ == '__main__':
             logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
             logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
             logger.info(f'Saving the progress in the log file: {logfile}')
-        
+            print(f'Saving the progress in the log file: {logfile}')
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
                 console = Console(file=log_file, force_terminal=True)   
