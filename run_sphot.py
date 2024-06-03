@@ -28,11 +28,10 @@ if __name__ == '__main__':
         slurm_jobid = os.environ["SLURM_JOB_ID"]
         slurm_taskid = os.environ["SLURM_ARRAY_TASK_ID"]
         logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
-        logger.info(f"Running in Slurm (jobid={slurm_jobid})")
+        logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
         logger.info(f'Saving the progress in the log file: {logfile}')
         from rich.console import Console
         def console_wrapper(func,*args,**kwargs):
-            logfile = f'logs/{slurm_jobid}_rich.log'
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
                 console = Console(file=log_file, force_terminal=True)   
