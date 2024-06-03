@@ -29,7 +29,7 @@ if __name__ == '__main__':
         def console_wrapper(func,*args,**kwargs):
             slurm_jobid = os.environ.get("SLURM_JOB_ID")
             slurm_taskid = os.environ.get("SLURM_ARRAY_TASK_ID")
-            logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
+            logfile = f'logs/{slurm_jobid}_{slurm_taskid}.rich'
             logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
             logger.info(f'Saving the progress in the log file: {logfile}')
             print(f'Saving the progress in the log file: {logfile}',flush=True)
