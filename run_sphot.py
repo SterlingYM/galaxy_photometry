@@ -25,22 +25,21 @@ if __name__ == '__main__':
                 
     # switch logging option based on how this file is running
     if "SLURM_JOB_ID" in os.environ:
-        slurm_jobid = os.environ["SLURM_JOB_ID"]
-        slurm_taskid = os.environ["SLURM_ARRAY_TASK_ID"]
-        logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
-        logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
-        logger.info(f'Saving the progress in the log file: {logfile}')
-        
         from rich.console import Console
-        def console_wrapper(logfile,func,*args,**kwargs):
+        def console_wrapper(func,*args,**kwargs):
+            slurm_jobid = os.environ["SLURM_JOB_ID"]
+            slurm_taskid = os.environ["SLURM_ARRAY_TASK_ID"]
+            logfile = f'logs/{slurm_jobid}_{slurm_taskid}_rich.log'
+            logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
+            logger.info(f'Saving the progress in the log file: {logfile}')
+        
             with open(logfile, 'w') as log_file:
                 # Create a Console instance that writes to the log file
                 console = Console(file=log_file, force_terminal=True)   
                 kwargs.update(dict(console=console))
                 return func(*args,**kwargs)
     else:
-        logfile=None,
-        def console_wrapper(logfile,func,*args,**kwargs):
+        def console_wrapper(func,*args,**kwargs):
             return func(*args,**kwargs)
             
     def run_sphot(**kwargs):
@@ -96,4 +95,4 @@ if __name__ == '__main__':
                 continue
         logger.info('Completed Sphot')
         
-    console_wrapper(logfile,run_sphot)
+    console_wrapper(run_sphot)
