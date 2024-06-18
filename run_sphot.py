@@ -27,19 +27,18 @@ if __name__ == '__main__':
     if "SLURM_JOB_ID" in os.environ:
         from rich.console import Console
         def console_wrapper(func,*args,**kwargs):
-            slurm_jobid = os.environ.get("SLURM_JOB_ID")
+            slurm_jobid = os.environ.get("SLURM_ARRAY_JOB_ID")
             slurm_taskid = os.environ.get("SLURM_ARRAY_TASK_ID")
             logfile = f'logs/{slurm_jobid}_{slurm_taskid}.rich'
             logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
             logger.info(f'Saving the progress in the log file: {logfile}')
             print(f'Saving the progress in the log file: {logfile}',flush=True)
             with open(logfile, 'w') as log_file:
-                log_file.write('test: this should be written to the log file '+logfile+'\n')
-                # # Create a Console instance that writes to the log file
-                # console = Console(file=log_file, force_terminal=True, force_interactive=True)   
-                # console.print('test: this should be written to the log file '+logfile)
-                # kwargs.update(dict(console=console))
-                # return func(*args,**kwargs)
+                # Create a Console instance that writes to the log file
+                console = Console(file=log_file, force_terminal=True, force_interactive=True)   
+                console.print('test: this should be written to the log file '+logfile)
+                kwargs.update(dict(console=console))
+                return func(*args,**kwargs)
     else:
         def console_wrapper(func,*args,**kwargs):
             return func(*args,**kwargs)
