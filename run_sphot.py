@@ -1,3 +1,15 @@
+'''run_sphot.py
+Y.S.Murakami 2024 @ JHU
+Run the basic sphot pipeline on a single galaxy.
+This script automatically detects the running environment (e.g., Slurm array job or local machine) and switches the logging output accordingly.
+
+Usage:
+    python run_sphot.py data_file.h5  [--out_folder=foldername] # to run sphot on a new data file
+    python run_sphot.py sphot_file.h5 --scalefit_only # to run scalefit only on existing sphot file
+'''
+
+
+
 from sphot.utils import load_and_crop
 from sphot.core import run_basefit, run_scalefit, logger
 from sphot.data import read_sphot_h5
@@ -29,7 +41,7 @@ if __name__ == '__main__':
         def console_wrapper(func,*args,**kwargs):
             slurm_jobid = os.environ.get("SLURM_ARRAY_JOB_ID")
             slurm_taskid = os.environ.get("SLURM_ARRAY_TASK_ID")
-            logfile = f'logs/{slurm_jobid}_{slurm_taskid}.rich'
+            logfile = f'logs/{slurm_jobid}_{slurm_taskid}.log'
             logger.info(f"Running in Slurm (jobid={slurm_jobid}, taskid={slurm_taskid})")
             logger.info(f'Saving the progress in the log file: {logfile}')
             print(f'Saving the progress in the log file: {logfile}',flush=True)
@@ -64,7 +76,7 @@ if __name__ == '__main__':
                                 custom_initial_crop = custom_initial_crop,
                                 sigma_guess = sigma_guess)
             out_path = os.path.join(out_folder,f'{galaxy.name}_sphot.h5')
-            logger.info('* Galaxy data loaded: sphot file will be saved as '+out_path)
+            logger.info(f'Galaxy data loaded: sphot file will be saved as {out_path}')
 
             # 2. fit Sersic model using the base filter
             run_basefit(galaxy,
@@ -75,14 +87,17 @@ if __name__ == '__main__':
                         **kwargs)
             galaxy.save(out_path)
         else:
-            logger.info('* Loading an existing sphot filt:',datafile)
+            logger.info(f'Loading an existing sphot filt: {datafile}')
             galaxy = read_sphot_h5(datafile)
             out_path=datafile
         
-        # 3. Scale Sersic model
-        logger.info('* Starting Scale fit')
+        # 3. Scale Sersic model (if necessary)
+        logger.info('Starting Scale fit')
         base_params = galaxy.images[base_filter].sersic_params
         for filt in filters:
+            if hasattr(galaxy.images[filt],'psf_sub_data'):
+                logger.info(f'Filter {filt} already has PSF-subtracted data')
+                continue
             try:
                 run_scalefit(galaxy,filt,base_params,
                             allow_refit=allow_refit,
