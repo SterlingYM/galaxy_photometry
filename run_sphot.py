@@ -4,8 +4,10 @@ Run the basic sphot pipeline on a single galaxy.
 This script automatically detects the running environment (e.g., Slurm array job or local machine) and switches the logging output accordingly.
 
 Usage:
-    python run_sphot.py data_file.h5  [--out_folder=foldername] # to run sphot on a new data file
-    python run_sphot.py sphot_file.h5 --scalefit_only # to run scalefit only on existing sphot file
+    python run_sphot.py data_file.h5  [--out_folder=foldername] # run sphot on a new data file
+    python run_sphot.py sphot_file.h5 --scalefit_only # run scalefit on existing sphot file if necessary 
+    python run_sphot.py sphot_file.h5 --scalefit_rerun # rerun all scalefit on existing sphot file
+
 '''
 
 
@@ -21,6 +23,7 @@ if __name__ == '__main__':
   
     # default options
     scalefit_only = False
+    scalefit_rerun = False
     out_folder = './'
 
     datafile = sys.argv[1]
@@ -29,6 +32,10 @@ if __name__ == '__main__':
             if arg == '--scalefit_only':
                 print('scalefit only option detected')
                 scalefit_only = True
+            if arg == '--scalefit_rerun':
+                print('rerun option detected')
+                scalefit_only = True
+                scalefit_rerun = True
             elif arg.startswith('--out_folder'):
                 out_folder = arg.split('=')[1]
                 print('output folder specified:',out_folder)
@@ -95,7 +102,8 @@ if __name__ == '__main__':
         logger.info('Starting Scale fit')
         base_params = galaxy.images[base_filter].sersic_params
         for filt in filters:
-            if hasattr(galaxy.images[filt],'psf_sub_data'):
+            if hasattr(galaxy.images[filt],'psf_sub_data') and not scalefit_rerun:
+                # skip scalefit if data exists and not scalefit_rerun==True
                 logger.info(f'Filter {filt} already has PSF-subtracted data')
                 continue
             try:
