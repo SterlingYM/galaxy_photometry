@@ -63,7 +63,7 @@ if __name__ == '__main__':
         blur_psf = dict(zip(filters,[4,5,3.8,3.8,9,9])) # the sigma of PSF blurring in pixels
         iter_basefit = 10  # Number of iterative Sersic-PSF fitting for the base_filter fit
         iter_scalefit = 5 # Number of iterative Sersic-PSF fitting for scale-fit
-        fit_complex_model = True # two-Sersic if True, single-Sersic if False
+        fit_complex_model = False # two-Sersic if True, single-Sersic if False
         allow_refit = False # Sersic profile is re-fitted for each filter if True
         custom_initial_crop = 1 # a float between 0 and 1: make this number smaller to manually crop data before analysis
         sigma_guess = 10 # initial guess of galaxy size in pixels (~HWHM of the galaxy profile)
